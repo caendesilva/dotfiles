@@ -4,6 +4,9 @@
 # Add a `git append` command to add the current changes to the last commit
 git config --global alias.append "commit --amend --no-edit -a"
 
+# Add a `git undo` command that undos the last commit, keeping its changes
+git config --global alias.undo "reset --soft HEAD~1"
+
 # Use Nano as default Git editor
 git config --global core.editor "nano"
 
