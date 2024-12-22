@@ -1,0 +1,74 @@
+#!/usr/bin/env php
+<?php
+
+// PHP Function caller
+
+if ($argc < 2) {
+    echo "Usage: phpf <function_name> [arguments...]\n";
+    exit(1);
+}
+
+// Helper functions that can be called
+
+// Simple calculator function that evaluates all arguments as a mathematical expression
+function calc() {
+    $expression = implode(' ', func_get_args());
+    return eval("return $expression;");
+}
+
+// Main code
+
+$function_name = $argv[1];
+$args = array_slice($argv, 2);
+
+if (!function_exists($function_name)) {
+    echo "Error: Function '$function_name' does not exist.\n";
+    exit(1);
+}
+
+// Process arguments
+$processed_args = [];
+$current_arg = '';
+$in_quotes = false;
+
+foreach ($args as $arg) {
+    if (strpos($arg, '"') === 0 && strrpos($arg, '"') === strlen($arg) - 1) {
+        // Argument is already properly quoted
+        $processed_args[] = substr($arg, 1, -1);
+    } elseif (strpos($arg, '"') === 0) {
+        // Start of a quoted argument
+        $current_arg = substr($arg, 1);
+        $in_quotes = true;
+    } elseif (strrpos($arg, '"') === strlen($arg) - 1 && $in_quotes) {
+        // End of a quoted argument
+        $current_arg .= ' ' . substr($arg, 0, -1);
+        $processed_args[] = $current_arg;
+        $current_arg = '';
+        $in_quotes = false;
+    } elseif ($in_quotes) {
+        // Middle of a quoted argument
+        $current_arg .= ' ' . $arg;
+    } else {
+        // Regular argument
+        $processed_args[] = $arg;
+    }
+}
+
+// Handle comma-separated arguments
+$final_args = [];
+foreach ($processed_args as $arg) {
+    if (strpos($arg, ',') !== false) {
+        $final_args = array_merge($final_args, explode(',', $arg));
+    } else {
+        $final_args[] = $arg;
+    }
+}
+
+// Convert numeric strings to actual numbers
+$final_args = array_map(function($arg) {
+    return is_numeric($arg) ? $arg + 0 : $arg;
+}, $final_args);
+
+// Call the function and output the result
+$result = call_user_func_array($function_name, $final_args);
+echo $result . "\n";

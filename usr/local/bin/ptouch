@@ -1,0 +1,53 @@
+#!/usr/bin/env php
+<?php
+
+// This script is part of pTouch. https://github.com/caendesilva/ptouch
+
+// Get all paths from the command line arguments
+$paths = array_slice($argv, 1);
+
+// Filter options (starting with -)
+$paths = array_filter($paths, function ($path) {
+    return strpos($path, '-') !== 0;
+});
+
+// Check if -v or --verbose is present
+$verbose = in_array('-v', $argv) || in_array('--verbose', $argv);
+
+if ($verbose) {
+    echo "Running pTouch!\n";
+}
+
+if (empty($paths)) {
+    echo "No paths provided.\n";
+    exit(1);
+}
+
+try {
+    foreach ($paths as $path) {
+        $parent = dirname($path);
+        if (! is_dir($parent)) {
+            if ($verbose) {
+                echo "Creating directory $parent...\n";
+            }
+            mkdir($parent, 0777, true);
+        }
+        if ($verbose) {
+            echo "Touching $path...\n";
+        }
+        touch($path);
+    }
+} catch (Exception $exception) {
+    echo "Something went wrong! Error: {$exception->getMessage()}\n";
+    if ($verbose) {
+        echo "---\n";
+        throw $exception;
+    }
+    exit(1);
+}
+
+if ($verbose) {
+    echo "Done!\n";
+}
+
+exit(0);

@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Check if a repository URL is provided
+if [ -z "$1" ]; then
+    echo "You must provide a repository URL."
+    exit 1
+fi
+
+# Get the repository URL from the argument
+repoUrl="$1"
+
+# Extract the repository name from the URL
+repoName=$(basename "$repoUrl" .git)
+
+# Clone the repository
+git clone "$repoUrl"
+
+# Check if the clone was successful
+if [ $? -eq 0 ]; then
+    # Change into the cloned directory
+    cd "$repoName" || exit 1
+else
+    echo "Failed to clone the repository."
+    exit 1
+fi
+

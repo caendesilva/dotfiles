@@ -1,0 +1,138 @@
+#!/usr/bin/env php
+<?php
+
+// Format and normalize lines in the file
+
+// Get files from the command line arguments (each argument is a file)
+$files = array_slice($argv, 1);
+//// Filter out arguments with -- (they are options)
+//$files = array_filter($files, fn($file) => !str_starts_with($file, '--'));
+//
+//// Check if --pretend is passed
+//$pretend = in_array('--pretend', $argv);
+
+// Check if -r is passed
+$recursive = in_array('-r', $argv);
+if ($recursive) {
+    echo "Formatting recursively...\n";
+    // Find all files in the current directory and its children except .git, vendor, and node_modules
+    $ignore = ['.git', 'vendor', 'node_modules'];
+    $rootDirs = array_filter(glob('*'), 'is_dir');
+    $rootDirs = array_diff($rootDirs, $ignore);
+    $files = [];
+    // Now we use the recursive iterator to find all files in the root directory
+    // This is much more efficient than filtering out vendor files after the fact
+
+    $gitignore = file_get_contents('.gitignore');
+
+    foreach ($rootDirs as $dir) {
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
+        foreach ($iterator as $file) {
+            if ($file->isDir() && in_array($file->getFilename(), $ignore)) {
+                $iterator->next();
+            }
+            if ($file->isFile()) {
+                // If this is another gitignore, we add it to the list of gitignores
+                if ($file->getFilename() === '.gitignore') {
+                    $gitignore .= file_get_contents($file->getPathname());
+                    continue;
+                }
+
+                // Check if it is git ignored
+                if (str_contains($gitignore, $file->getPathname())) {
+                    continue;
+                }
+
+                // Skip if it is in storage
+                if (str_contains($file->getPathname(), 'storage')) {
+                    continue;
+                }
+
+                // Skip composer.json
+                if (str_contains($file->getPathname(), 'composer.json')) {
+                    continue;
+                }
+
+                if (in_array($file->getExtension(), ['php', 'json', 'md', 'yml', 'yaml', 'html'])) {
+                    // Skip .blade.php
+                    if (str_contains($file->getFilename(), '.blade.php')) {
+                        continue;
+                    }
+
+                    $files[] = $file->getPathname();
+                }
+            }
+        }
+    }
+
+    // die(var_dump($files));
+}
+
+// Validate files
+if (empty($files)) {
+    echo "No files specified.\n";
+    exit(1);
+}
+foreach ($files as $file) {
+    // If glob skip
+    if (str_contains($file, '*')) {
+        continue;
+    }
+
+    if (!file_exists($file)) {
+        echo sprintf("File '%s' does not exist.\n", $file);
+        exit(1);
+    }
+    if (is_dir($file)) {
+        echo sprintf("File '%s' is a directory.\n", $file);
+        exit(1);
+    }
+}
+
+// todo preevaluate glob to get accurate file count
+
+//$fileList = array_map('basename', $files);
+$fileList = $files;
+echo sprintf("Processing %s files... (%s)\n", count($files), implode(", ", $fileList));
+
+// Support glob patterns
+$files = array_reduce($files, function ($carry, $file) {
+    if (str_contains($file, '*')) {
+        $carry = array_merge($carry, glob($file));
+    } else {
+        $carry[] = $file;
+    }
+    return $carry;
+}, []);
+
+// Process each file
+foreach ($files as $file) {
+    // Skip dirs
+    if (is_dir($file)) {
+        continue;
+    }
+
+    // Skip vendors
+    if (str_contains($file, 'vendor') || str_contains($file, 'node_modules')) {
+        continue;
+    }
+
+
+    // todo if verbose?
+    echo sprintf("Processing '%s'...\n", $file);
+
+    $contents = file_get_contents($file);
+    
+    // Normalize line endings
+    $contents = str_replace("\r\n", "\n", $contents);
+    
+    $contents = explode("\n", $contents);
+    foreach ($contents as &$line) {
+        // Remove trailing whitespace
+        $line = rtrim($line);
+    }
+    $contents = trim(implode("\n", $contents)) . "\n";
+
+    // Write the file
+    file_put_contents($file, $contents);
+}
