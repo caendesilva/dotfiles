@@ -6,6 +6,7 @@ alias pint="./vendor/bin/pint"
 alias gcp="git cherry-pick"
 alias gs="git show"
 alias blame="git --no-pager blame"
+alias git-append="git commit --amend --no-edit -a"
 # End global aliases
 
 # Avoid duplicates in history
