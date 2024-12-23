@@ -13,6 +13,9 @@ git config --global core.editor "nano"
 # Configure global .gitignore
 git config --global core.excludesfile "~/.config/git/ignore"
 
+# Automatically create remote branches
+git config --global --type bool push.autoSetupRemote true
+
 # Set up global .gitignore file
 mkdir -p ~/.config/git && touch ~/.config/git/ignore
 
