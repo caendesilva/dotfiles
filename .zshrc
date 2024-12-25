@@ -14,3 +14,12 @@ setopt histignorealldups
 
 # Fish-like autosuggestions for zsh
 source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+# Ultimate Git nah
+nah () {
+    git reset --hard
+    git clean -df
+    if [ -d ".git/rebase-apply" ] || [ -d ".git/rebase-merge" ]; then
+        git rebase --abort
+    fi
+}
