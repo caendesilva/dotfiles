@@ -7,6 +7,9 @@ git config --global alias.append "commit --amend --no-edit -a"
 # Add a `git undo` command that undos the last commit, keeping its changes
 git config --global alias.undo "reset --soft HEAD~1"
 
+# Add a `git combine` command to combine the last commit into the one before it
+git config --global alias.combine '!sh -c "git reset --soft HEAD~ && git commit --amend --no-edit"'
+
 # Use Nano as default Git editor
 git config --global core.editor "nano"
 
