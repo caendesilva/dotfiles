@@ -7,7 +7,6 @@ alias gcp="git cherry-pick"
 alias gs="git show"
 alias blame="git --no-pager blame"
 alias revert="git revert --no-edit HEAD"
-alias git-append="git commit --amend --no-edit -a"
 alias \#='echo -e "\e[90m#$*\e[0m"'
 # End global aliases
 
